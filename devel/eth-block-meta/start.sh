@@ -7,14 +7,15 @@ main() {
 
   set -e
 
-  dsn="${MONGO_DSN:-"mongodb://root:root@localhost:27017"}"
-  sink="$ROOT/../substreams-sink-mongodb"
-  substreams_spkg="${SUBSTREAMS_SPKG:-"https://github.com/streamingfast/substreams-eth-block-meta/releases/download/v0.4.1/substreams-eth-block-meta-v0.4.1.spkg"}"
+  dsn="${ELASTIC_DSN:-"http://localhost:9200"}"
+  sink="$ROOT/../../cmd/substreams-sink-elasticsearch/substreams-sink-elasticsearch"
+  #substreams_spkg="${SUBSTREAMS_SPKG:-"https://github.com/YaroShkvorets/substreams-eth-block-meta/releases/download/v0.6.0/substreams-eth-block-meta-v0.6.0.spkg"}"
+  #substreams_spkg="${SUBSTREAMS_SPKG:-"https://github.com/streamingfast/substreams-eth-block-meta/releases/download/v0.4.1/substreams-eth-block-meta-v0.4.1.spkg"}"
+  substreams_spkg="/Users/shkvo/github/Pinax/substreams-eth-block-meta-my/substreams.spkg"
 
   $sink run \
     ${dsn} \
-    dev_db \
-    ${ROOT}/schema.json \
+    eth-block2 \
     "mainnet.eth.streamingfast.io:443" \
     "$substreams_spkg" \
     "db_out" \

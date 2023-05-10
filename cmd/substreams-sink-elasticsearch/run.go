@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -13,15 +11,15 @@ import (
 	. "github.com/streamingfast/cli"
 	"github.com/streamingfast/shutter"
 	sink "github.com/streamingfast/substreams-sink"
-	"github.com/streamingfast/substreams-sink-mongodb/mongo"
-	"github.com/streamingfast/substreams-sink-mongodb/sinker"
+	"github.com/yaroshkvorets/substreams-sink-elasticsearch/elastic"
+	"github.com/yaroshkvorets/substreams-sink-elasticsearch/sinker"
 	"go.uber.org/zap"
 )
 
 var sinkRunCmd = Command(sinkRunE,
-	"run <dsn> <database_name> <schema> <endpoint> <manifest> <module> [<start>:<stop>]",
-	"Runs MongoDB sink process",
-	RangeArgs(6, 7),
+	"run <dsn> <database_name> <endpoint> <manifest> <module> [<start>:<stop>]",
+	"Runs ElasticSearch sink process",
+	RangeArgs(5, 6),
 	Flags(func(flags *pflag.FlagSet) {
 		sink.AddFlagsToSet(flags)
 	}),
@@ -39,30 +37,19 @@ func sinkRunE(cmd *cobra.Command, args []string) error {
 	sink.RegisterMetrics()
 	sinker.RegisterMetrics()
 
-	mongoDSN := args[0]
+	elasticDSN := args[0]
 	databaseName := args[1]
-	schema := args[2]
-	endpoint := args[3]
-	manifestPath := args[4]
-	outputModuleName := args[5]
+	endpoint := args[2]
+	manifestPath := args[3]
+	outputModuleName := args[4]
 	blockRange := ""
-	if len(args) > 6 {
-		blockRange = args[6]
+	if len(args) > 5 {
+		blockRange = args[5]
 	}
 
-	schemaContent, err := os.ReadFile(schema)
+	elasticLoader, err := elastic.NewElasticSearch(elasticDSN, databaseName, zlog)
 	if err != nil {
-		return fmt.Errorf("reading schema file: %w", err)
-	}
-
-	var tables mongo.Tables
-	if err := json.Unmarshal(schemaContent, &tables); err != nil {
-		return fmt.Errorf("unmarshalling schema file: %w", err)
-	}
-
-	mongoLoader, err := mongo.NewMongoDB(mongoDSN, databaseName, zlog)
-	if err != nil {
-		return fmt.Errorf("unable to create mongo loader: %w", err)
+		return fmt.Errorf("unable to create elastic loader: %w", err)
 	}
 
 	sink, err := sink.NewFromViper(
@@ -76,18 +63,18 @@ func sinkRunE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to setup sinker: %w", err)
 	}
 
-	mongoSinker, err := sinker.New(sink, mongoLoader, tables, zlog, tracer)
+	elasticSinker, err := sinker.New(sink, elasticLoader, zlog, tracer)
 	if err != nil {
-		return fmt.Errorf("unable to setup mongo sinker: %w", err)
+		return fmt.Errorf("unable to setup elastic sinker: %w", err)
 	}
 
-	mongoSinker.OnTerminating(app.Shutdown)
+	elasticSinker.OnTerminating(app.Shutdown)
 	app.OnTerminating(func(err error) {
-		mongoSinker.Shutdown(err)
+		elasticSinker.Shutdown(err)
 	})
 
 	go func() {
-		mongoSinker.Run(ctx)
+		elasticSinker.Run(ctx)
 	}()
 
 	zlog.Info("ready, waiting for signal to quit")

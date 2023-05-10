@@ -16,11 +16,11 @@ import (
 var version = "dev"
 
 func main() {
-	Run("substreams-sink-mongodb", "Substreams MongoDB Sink",
+	Run("substreams-sink-elasticsearch", "Substreams ElasticSearch Sink",
 
 		sinkRunCmd,
 
-		ConfigureViper("SINK_MONGODB"),
+		ConfigureViper("SINK_ELASTICSEARCH"),
 		ConfigureVersion(version),
 
 		PersistentFlags(

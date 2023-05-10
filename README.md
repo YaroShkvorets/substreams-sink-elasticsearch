@@ -1,6 +1,6 @@
-# Substreams MongoDB Sink
+# Substreams ElasticSearch Sink
 
-This is a command line tool to quickly sync a substream with a MongoDB database.
+This is a command line tool to quickly sync a substream with an ElasticSearch database.
 
 ### Running It
 
@@ -45,7 +45,7 @@ Usage:
 Runs  extractor code
 
 Usage:
-  substreams-sink-mongodb run <dsn> <database_name> <schema> <endpoint> <manifest> <module> [<start>:<stop>] [flags]
+  substreams-sink-elasticsearch run <dsn> <database_name> <endpoint> <manifest> <module> [<start>:<stop>] [flags]
 
 Flags:
   -h, --help        help for run
