@@ -30,8 +30,8 @@ main() {
 }
 
 prepare() {
-  if [[ ! -d "./devel/data/mongodb" ]]; then
-    mkdir -p ./devel/data/mongodb 1> /dev/null
+  if [[ ! -d "./devel/data/elastic" ]]; then
+    mkdir -p ./devel/data/elastic 1> /dev/null
   fi
 }
 
